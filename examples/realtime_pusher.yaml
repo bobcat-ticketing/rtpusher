@@ -1,0 +1,94 @@
+# example of realtime_pusher configuration file
+
+mqtt_publish:
+  journey:
+    topic: /service/v1/journey
+    format: json
+  last_stop:
+    topic: /service/v1/lastStop
+    format: json
+  next_stop:
+    topic: /service/v1/nextStop
+    format: json
+  gps:
+    topic: /service/v1/gps/rmc
+    format: nmea
+  time:
+    topic: /service/v1/Validate/time
+    format: json
+  reader:
+    topic: /service/v1/Validate/reader
+    format: json
+
+mqtt_subscribe:
+  display:
+    topic: /service/v1/Validate/display
+    format: json
+
+testdata:
+  - id: "1"
+    sleep: 1
+    content:
+      journey:
+        line: "2te"
+      last_stop:
+        GIDHpl: "2037"
+      next_stop:
+        GIDHpl: "2038"
+      gps:
+        timestamp: 20170102T120000Z
+        lat: 57.770351
+        long: 12.255959
+      time:
+        iso8601: 20170102T120000Z
+      reader:
+        id: ticket1
+        FILE_BASE64_mtb: ../examples/tickets/ticket1.mtb
+    expect:
+      display:
+        id: ticket1
+        result: 0
+  - id: "2"
+    sleep: 1
+    content:
+      journey:
+        line: "2te"
+      last_stop:
+        GIDHpl: "2037"
+      next_stop:
+        GIDHpl: "2038"
+      gps:
+        timestamp: 20170102T080000Z
+        lat: 57.770351
+        long: 12.255959
+      time:
+        iso8601: 20170102T080000Z
+  - id: "3"
+    sleep: 1
+    content:
+      journey:
+        line: "2te"
+      last_stop:
+        GIDHpl: "2039"
+      next_stop:
+        GIDHpl: "2040"
+      gps:
+        timestamp: 20170102T121100Z
+        lat: 57.690351
+        long: 12.235959
+      time:
+        iso8601: 20170102T121100Z
+  - id: "4"
+    sleep: 1
+    content:
+      reader:
+        id: ticket3
+        FILE_BASE64_mtb: ../examples/tickets/ticket3.mtb
+    expect:
+      display:
+        id: ticket3
+        result: 2
+  - id: "9999"
+    content:
+      time:
+        iso8601: 20170102T235959Z

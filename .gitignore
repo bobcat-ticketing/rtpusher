@@ -1,0 +1,10 @@
+venv
+docs
+.idea
+__pycache__
+*.egg-info
+build
+dist
+.coverage
+htmlcov
+.mypy_cache

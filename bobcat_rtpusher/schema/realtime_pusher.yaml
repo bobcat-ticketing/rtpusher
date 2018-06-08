@@ -1,0 +1,134 @@
+$schema: http://json-schema.org/schema#
+
+type: object
+additionalProperties: false
+required:
+  - mqtt_publish
+  - mqtt_subscribe
+  - testdata
+properties:
+  mqtt_publish:
+    type: object
+    additionalProperties: false
+    properties:
+      journey:
+        $ref: '#/definitions/mqtt_channel'
+      last_stop:
+        $ref: '#/definitions/mqtt_channel'
+      next_stop:
+        $ref: '#/definitions/mqtt_channel'
+      gps:
+        $ref: '#/definitions/mqtt_channel'
+      time:
+        $ref: '#/definitions/mqtt_channel'
+      reader:
+        $ref: '#/definitions/mqtt_channel'
+  mqtt_subscribe:
+    type: object
+    additionalProperties: false
+    properties:
+      display:
+        $ref: '#/definitions/mqtt_channel'
+  testdata:
+    type: array
+    items:
+      $ref: '#/definitions/testdata'
+  expect:
+   display:
+     id:
+       type: string
+     result:
+       type: string
+
+definitions:
+  mqtt_channel:
+    type: object
+    additionalProperties: false
+    properties:
+      topic:
+        type: string
+      format:
+        type: string
+        enum:
+          - json
+          - bytes
+          - nmea
+  testdata:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+    properties:
+      id:
+        type: string
+      sleep:
+        type: number
+      content:
+        $ref: '#/definitions/content'
+      expect:
+        $ref: '#/definitions/expect'
+  content:
+    type: object
+    additionalProperties: false
+    properties:
+      journey:
+        type: object
+        additionalProperties: false
+        properties:
+          line:
+            type: string
+      last_stop:
+        type: object
+        additionalProperties: false
+        properties:
+          GIDHpl:
+            type: string
+      next_stop:
+        type: object
+        additionalProperties: false
+        properties:
+          GIDHpl:
+            type: string
+      gps:
+        type: object
+        additionalProperties: false
+        required:
+          - lat
+          - long
+        properties:
+          timestamp:
+            type: string
+          duration:
+            type: string
+          lat:
+            type: number
+          long:
+            type: number
+      time:
+        type: object
+        additionalProperties: false
+        properties:
+          iso8601:
+            type: string
+      reader:
+        type: object
+        additionalProperties: false
+        properties:
+          id:
+            type: string
+          BASE64_mtb:
+            type: string
+          FILE_BASE64_mtb:
+            type: string
+  expect:
+    type: object
+    additionalProperties: false
+    properties:
+      display:
+        type: object
+        additionalProperties: false
+        properties:
+          id:
+            type: string
+          result:
+            type: number
