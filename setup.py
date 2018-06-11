@@ -19,6 +19,7 @@ setup(
         'pynmea2==1.12.0',
         'pyyaml==3.12',
         'setuptools',
+        'websockets==4.0.1',
     ],
     package_data={'bobcat_rtpusher': [
         'schema/*.yaml',
