@@ -10,15 +10,15 @@ all:
 
 $(VENV): requirements.txt
 	$(PYTHON) -m venv $(VENV)
-	$(VENV)/bin/pip install -i $(BOBCAT_PYPI) -r requirements.txt
+	$(VENV)/bin/pip install -r requirements.txt
 	$(VENV)/bin/pip install -e .
 	touch $(VENV)
 
 upgrade-venv:: $(VENV)
-	$(VENV)/bin/pip install -i $(BOBCAT_PYPI) -r requirements.txt --upgrade
+	$(VENV)/bin/pip install -r requirements.txt --upgrade
 	$(VENV)/bin/pip install -e .
 
-wheel:
+wheel: $(VENV)
 	$(VENV)/bin/python setup.py sdist bdist_wheel
 
 upload:
