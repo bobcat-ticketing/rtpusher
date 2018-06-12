@@ -3,18 +3,18 @@ SOURCE=		bobcat_rtpusher
 VENV=		venv
 DISTDIRS=	*.egg-info build dist
 
-BOBCAT_PYPI?=	https://pypi.bobcat.kirei.se/simple/
-
 
 all:
 
-$(VENV): requirements.txt
+$(VENV): $(VENV)/.depend
+
+$(VENV)/.depend: requirements.txt
 	$(PYTHON) -m venv $(VENV)
 	$(VENV)/bin/pip install -r requirements.txt
 	$(VENV)/bin/pip install -e .
-	touch $(VENV)
+	touch $(VENV)/.depend
 
-upgrade-venv:: $(VENV)
+upgrade-venv::
 	$(VENV)/bin/pip install -r requirements.txt --upgrade
 	$(VENV)/bin/pip install -e .
 
