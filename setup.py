@@ -14,12 +14,12 @@ setup(
     packages=['bobcat_rtpusher'],
     install_requires=[
         'asyncio==3.4.3',
-        'hbmqtt==0.9.4',
+        'cryptojwt==0.6.6',
+        'hbmqtt==0.9.5',
         'isodate==0.6.0',
-        'pynmea2==1.12.0',
+        'pynmea2==1.15.0',
         'pyyaml==3.13',
         'setuptools',
-        'websockets==6.0',
     ],
     package_data={'bobcat_rtpusher': [
         'schema/*.yaml',

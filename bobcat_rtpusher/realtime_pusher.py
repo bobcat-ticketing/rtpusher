@@ -13,7 +13,7 @@ import time
 import yaml
 import pynmea2
 import isodate
-from cryptojwt import b64d, b64e
+from cryptojwt.utils import b64d, b64e
 from hbmqtt.client import MQTTClient, QOS_1
 
 
