@@ -32,6 +32,10 @@ lint: $(VENV)
 typecheck: $(VENV)
 	$(VENV)/bin/mypy $(SOURCE)
 
+reformat: $(VENV)
+	$(VENV)/bin/isort --recursive $(SOURCE)
+	$(VENV)/bin/black $(SOURCE)
+
 clean:
 	rm -fr $(DISTDIRS)
 
