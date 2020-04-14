@@ -14,7 +14,7 @@ setup(
     packages=['bobcat_rtpusher'],
     install_requires=[
         'asyncio==3.4.3',
-        'cryptojwt==0.6.6',
+        'cryptojwt>=0.6.6',
         'hbmqtt==0.9.5',
         'isodate==0.6.0',
         'pynmea2==1.15.0',
