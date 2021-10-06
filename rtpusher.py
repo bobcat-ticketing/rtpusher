@@ -13,8 +13,8 @@ from typing import List
 import isodate
 import pynmea2
 import yaml
+from asyncio_mqtt import Client
 from cryptojwt.utils import b64d, b64e
-from hbmqtt.client import QOS_1, MQTTClient
 
 FILE_PREFIX = "FILE_"
 BASE64_PREFIX = "BASE64_"
@@ -95,7 +95,7 @@ def get_channel_contents(config: dict, name: str, contents: dict):
         raise Exception("Undefined channel: {}".format(name))
 
 
-async def send_realtime(mqtt: MQTTClient, data: List):
+async def send_realtime(mqtt: Client, data: List):
     for topic, msg in data:
         ret = await mqtt.publish(topic, msg)
         logging.debug("Published to MQTT topic %s -> %s", topic, ret)
@@ -130,14 +130,14 @@ async def process_yaml(data: dict, server: str, speed: float = 1.0):
     """Process YAML realtime data"""
     channel_config = data.get("mqtt_publish", {})
     timeout = data.get("timeout", 3.0)
-    mqtt = MQTTClient()
-    ret = await mqtt.connect(server)
+    mqtt = Client(hostname=server)
+    ret = await mqtt.connect()
     logging.debug("MQTT connect to %s -> %s", server, ret)
     sub = []
     subscribed_channels = {}
     for name, channel in data.get("mqtt_subscribe", {}).items():
         logging.debug("Subscribe to: %s -> %s", name, channel)
-        sub.append((channel["topic"], channel.get("qos", QOS_1)))
+        sub.append((channel["topic"], channel.get("qos", 1)))
         subscribed_channels[channel["topic"]] = name, channel.get("format", "json")
     if sub:
         ret = await mqtt.subscribe(sub)
@@ -167,21 +167,24 @@ async def process_yaml(data: dict, server: str, speed: float = 1.0):
             expected = tentry["expect"]
             try:
                 while expected:
-                    message = await asyncio.wait_for(mqtt.deliver_message(), timeout)
-                    message_channel, message_format = subscribed_channels[message.topic]
-                    expect = expected[message_channel]
-                    if match_response(expect, message_format, message.data):
-                        logging.debug(
-                            "Got expected result on channel %s", message_channel
-                        )
-                        del expected[message_channel]
-                    else:
-                        logging.error(
-                            "Got unexpected result on channel %s = %s",
-                            message_channel,
-                            message.data,
-                        )
-                        errors += 1
+                    async with mqtt.unfiltered_messages() as messages:
+                        async for message in messages:
+                            message_channel, message_format = subscribed_channels[
+                                message.topic
+                            ]
+                            expect = expected[message_channel]
+                            if match_response(expect, message_format, message.payload):
+                                logging.debug(
+                                    "Got expected result on channel %s", message_channel
+                                )
+                                del expected[message_channel]
+                            else:
+                                logging.error(
+                                    "Got unexpected result on channel %s = %s",
+                                    message_channel,
+                                    message.payload,
+                                )
+                                errors += 1
             except asyncio.TimeoutError:
                 logging.error(
                     "Didn't receive expected result from channel(s): %s",
@@ -235,7 +238,7 @@ def main():
         dest="server",
         metavar="server",
         help="MQTT broker",
-        default="mqtt://127.0.0.1/",
+        default="127.0.0.1",
     )
     parser.add_argument(
         "--speed",
@@ -269,7 +272,7 @@ def main():
     while True:
         if args.format == "yaml":
             with open(args.filename) as testdata_file:
-                data = yaml.load(testdata_file)
+                data = yaml.safe_load(testdata_file)
             process = process_yaml(data=data, server=args.server, speed=args.speed)
         elif args.format == "csv":
             process = process_csv(
