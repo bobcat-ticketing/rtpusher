@@ -13,8 +13,8 @@ from typing import List
 import isodate
 import pynmea2
 import yaml
-from cryptojwt.utils import b64d, b64e
 from asyncio_mqtt import Client
+from cryptojwt.utils import b64d, b64e
 
 FILE_PREFIX = "FILE_"
 BASE64_PREFIX = "BASE64_"
@@ -169,7 +169,9 @@ async def process_yaml(data: dict, server: str, speed: float = 1.0):
                 while expected:
                     async with mqtt.unfiltered_messages() as messages:
                         async for message in messages:
-                            message_channel, message_format = subscribed_channels[message.topic]
+                            message_channel, message_format = subscribed_channels[
+                                message.topic
+                            ]
                             expect = expected[message_channel]
                             if match_response(expect, message_format, message.payload):
                                 logging.debug(
