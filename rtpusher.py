@@ -13,7 +13,7 @@ from typing import List
 import isodate
 import pynmea2
 import yaml
-from asyncio_mqtt import Client
+import aiomqtt
 from cryptojwt.utils import b64d, b64e
 
 FILE_PREFIX = "FILE_"
@@ -95,7 +95,7 @@ def get_channel_contents(config: dict, name: str, contents: dict):
         raise Exception("Undefined channel: {}".format(name))
 
 
-async def send_realtime(mqtt: Client, data: List):
+async def send_realtime(mqtt: aiomqtt.Client, data: List):
     for topic, msg in data:
         ret = await mqtt.publish(topic, msg)
         logging.debug("Published to MQTT topic %s -> %s", topic, ret)
@@ -130,7 +130,7 @@ async def process_yaml(data: dict, server: str, speed: float = 1.0):
     """Process YAML realtime data"""
     channel_config = data.get("mqtt_publish", {})
     timeout = data.get("timeout", 3.0)
-    mqtt = Client(hostname=server)
+    mqtt = aiomqtt.Client(hostname=server)
     ret = await mqtt.connect()
     logging.debug("MQTT connect to %s -> %s", server, ret)
     sub = []

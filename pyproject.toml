@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rtpusher"
-version = "1.4.0.dev3"
+version = "1.4.0.dev4"
 description = "Realtime Pusher"
 authors = ["Jakob Schlyter <jakob@kirei.se>"]
 
@@ -9,7 +9,7 @@ rtpusher = "rtpusher:main"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-asyncio-mqtt = "<0.17.0"
+aiomqtt = "^1.2.1"
 isodate = "^0.6.0"
 pynmea2 = "^1.18.0"
 PyYAML = "^5.4.1"
