@@ -10,10 +10,10 @@ rtpusher = "rtpusher:cli"
 [tool.poetry.dependencies]
 python = "^3.9"
 aiomqtt = "^1.2.1"
-isodate = "^0.6.0"
-pynmea2 = "^1.18.0"
+isodate = "^0.6.1"
+pynmea2 = "^1.19.0"
 PyYAML = "^6.0.1"
-cryptojwt = "^1.5.2"
+cryptojwt = "^1.8.3"
 
 [tool.poetry.dev-dependencies]
 pylama = "^8.4.1"
