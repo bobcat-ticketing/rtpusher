@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rtpusher"
-version = "1.4.0.dev4"
+version = "1.4.0"
 description = "Realtime Pusher"
 authors = ["Jakob Schlyter <jakob@kirei.se>"]
 
