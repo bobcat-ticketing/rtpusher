@@ -10,10 +10,10 @@ import logging
 import time
 from typing import List
 
+import aiomqtt
 import isodate
 import pynmea2
 import yaml
-import aiomqtt
 from cryptojwt.utils import b64d, b64e
 
 FILE_PREFIX = "FILE_"
@@ -95,9 +95,9 @@ def get_channel_contents(config: dict, name: str, contents: dict):
         raise Exception("Undefined channel: {}".format(name))
 
 
-async def send_realtime(mqtt: aiomqtt.Client, data: List):
+async def send_realtime(client: aiomqtt.Client, data: List):
     for topic, msg in data:
-        ret = await mqtt.publish(topic, msg)
+        ret = await client.publish(topic, msg)
         logging.debug("Published to MQTT topic %s -> %s", topic, ret)
 
 
@@ -126,13 +126,10 @@ def match_response(expect: dict, data_format: str, data: bytes):
     return True
 
 
-async def process_yaml(data: dict, server: str, speed: float = 1.0):
+async def process_yaml(data: dict, client: aiomqtt.Client, speed: float = 1.0):
     """Process YAML realtime data"""
     channel_config = data.get("mqtt_publish", {})
     timeout = data.get("timeout", 3.0)
-    mqtt = aiomqtt.Client(hostname=server)
-    ret = await mqtt.connect()
-    logging.debug("MQTT connect to %s -> %s", server, ret)
     sub = []
     subscribed_channels = {}
     for name, channel in data.get("mqtt_subscribe", {}).items():
@@ -140,7 +137,7 @@ async def process_yaml(data: dict, server: str, speed: float = 1.0):
         sub.append((channel["topic"], channel.get("qos", 1)))
         subscribed_channels[channel["topic"]] = name, channel.get("format", "json")
     if sub:
-        ret = await mqtt.subscribe(sub)
+        ret = await client.subscribe(sub)
         logging.debug("MQTT subscribe: %s", ret)
     errors = 0
     for tentry in data["testdata"]:
@@ -161,13 +158,13 @@ async def process_yaml(data: dict, server: str, speed: float = 1.0):
                 messages.insert(0, msg)
             else:
                 messages.append(msg)
-        ret = await send_realtime(mqtt, messages)
+        ret = await send_realtime(client, messages)
         logging.info("Sent %s", ", ".join(tentry["content"]))
         if "expect" in tentry:
             expected = tentry["expect"]
             try:
                 while expected:
-                    async with mqtt.unfiltered_messages() as messages:
+                    async with client.messages() as messages:
                         async for message in messages:
                             message_channel, message_format = subscribed_channels[
                                 message.topic
@@ -200,14 +197,10 @@ async def process_yaml(data: dict, server: str, speed: float = 1.0):
         logging.error("Test finished with %d errors", errors)
     else:
         logging.info("Test finished OK!")
-    await mqtt.disconnect()
 
 
-async def process_csv(filename: str, server: str, speed: float = 1.0):
+async def process_csv(filename: str, client: aiomqtt.Client, speed: float = 1.0):
     """Process CSV realtime data"""
-    mqtt = MQTTClient()
-    ret = await mqtt.connect(server)
-    logging.debug("MQTT connect to %s -> %s", server, ret)
     testdata_file = open(filename)
     header = testdata_file.readline()
     last_timestamp = None
@@ -223,13 +216,13 @@ async def process_csv(filename: str, server: str, speed: float = 1.0):
                 time.sleep(delay)
         logging.info("Topic %s, Payload %s", topic, message)
         asyncio.get_event_loop().run_until_complete(
-            send_realtime(server, [(topic, payload)])
+            send_realtime(client, [(topic, payload)])
         )
         last_timestamp = timestamp
     testdata_file.close()
 
 
-def main():
+async def main():
     """Main function"""
     parser = argparse.ArgumentParser(description="MQTT based realtime data simulator")
 
@@ -269,21 +262,23 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
 
-    while True:
+    async with aiomqtt.Client(hostname=args.server) as client:
+        logging.debug("MQTT connect to %s", args.server)
         if args.format == "yaml":
             with open(args.filename) as testdata_file:
                 data = yaml.safe_load(testdata_file)
-            process = process_yaml(data=data, server=args.server, speed=args.speed)
+            process = await process_yaml(client=client, data=data, speed=args.speed)
         elif args.format == "csv":
-            process = process_csv(
-                filename=args.filename, server=args.server, speed=args.speed
+            process = await process_csv(
+                client=client, filename=args.filename, speed=args.speed
             )
         else:
             raise Exception("Unknown format")
-        asyncio.get_event_loop().run_until_complete(process)
-        if not args.loop:
-            break
+
+
+def cli():
+    asyncio.run(main())
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
