@@ -167,7 +167,7 @@ async def process_yaml(data: dict, client: aiomqtt.Client, speed: float = 1.0):
                     async with client.messages() as messages:
                         async for message in messages:
                             message_channel, message_format = subscribed_channels[
-                                message.topic
+                                message.topic.value
                             ]
                             expect = expected[message_channel]
                             if match_response(expect, message_format, message.payload):
