@@ -11,7 +11,7 @@ import time
 from typing import List
 
 import aiomqtt
-import isodate
+import pendulum
 import pynmea2
 import yaml
 from cryptojwt.utils import b64d, b64e
@@ -38,9 +38,9 @@ def decdeg2dms(dd, dirpos, dirneg):
 def contents_to_nmea(contents: dict):
     global previous_dt
     if "timestamp" in contents:
-        dt = isodate.parse_datetime(contents["timestamp"])
+        dt = pendulum.parse(contents["timestamp"])
     elif "duration" in contents and previous_dt is not None:
-        duration = isodate.parse_duration(contents["duration"])
+        duration = pendulum.parse(contents["duration"])
         dt = previous_dt + duration
     else:
         dt = datetime.datetime.utcnow()
