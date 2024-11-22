@@ -1,5 +1,5 @@
 """
-    Realtime data simulator device based on MQTT
+Realtime data simulator device based on MQTT
 """
 
 import argparse
@@ -23,16 +23,13 @@ previous_dt = None
 
 
 def decdeg2dms(dd, dirpos, dirneg):
-    if dd >= 0:
-        direction = dirpos
-    else:
-        direction = dirneg
+    direction = dirpos if dd >= 0 else dirneg
     (minutes, seconds) = divmod(abs(dd) * 3600, 60)
     (degrees, minutes) = divmod(minutes, 60)
     if dirpos == "N":
-        return "{:02.0f}{:02.0f}.{:02.0f}".format(degrees, minutes, seconds), direction
+        return f"{degrees:02.0f}{minutes:02.0f}.{seconds:02.0f}", direction
     else:
-        return "{:03.0f}{:02.0f}.{:02.0f}".format(degrees, minutes, seconds), direction
+        return f"{degrees:03.0f}{minutes:02.0f}.{seconds:02.0f}", direction
 
 
 def contents_to_nmea(contents: dict):
@@ -89,10 +86,10 @@ def get_channel_contents(config: dict, name: str, contents: dict):
             else:
                 raise Exception("No binary contents found")
         else:
-            raise Exception("Undefined format: {}".format(channel_format))
+            raise Exception(f"Undefined format: {channel_format}")
         return (channel_topic, payload)
     else:
-        raise Exception("Undefined channel: {}".format(name))
+        raise Exception(f"Undefined channel: {name}")
 
 
 async def send_realtime(client: aiomqtt.Client, data: List):
@@ -129,7 +126,7 @@ def match_response(expect: dict, data_format: str, data: bytes):
 async def process_yaml(data: dict, client: aiomqtt.Client, speed: float = 1.0):
     """Process YAML realtime data"""
     channel_config = data.get("mqtt_publish", {})
-    timeout = data.get("timeout", 3.0)
+    _timeout = data.get("timeout", 3.0)
     sub = []
     subscribed_channels = {}
     for name, channel in data.get("mqtt_subscribe", {}).items():
@@ -201,25 +198,24 @@ async def process_yaml(data: dict, client: aiomqtt.Client, speed: float = 1.0):
 
 async def process_csv(filename: str, client: aiomqtt.Client, speed: float = 1.0):
     """Process CSV realtime data"""
-    testdata_file = open(filename)
-    header = testdata_file.readline()
-    last_timestamp = None
-    for line in testdata_file:
-        (timestamp, topic, qos, message) = line.rstrip().split(",")
-        topic = topic.strip()
-        message = message.strip()
-        payload = b64d(message)
-        if last_timestamp is not None and speed != 0:
-            delay = (float(timestamp) - float(last_timestamp)) / speed
-            if delay > 0:
-                logging.info("Sleeping for %f seconds", delay)
-                time.sleep(delay)
-        logging.info("Topic %s, Payload %s", topic, message)
-        asyncio.get_event_loop().run_until_complete(
-            send_realtime(client, [(topic, payload)])
-        )
-        last_timestamp = timestamp
-    testdata_file.close()
+    with open(filename) as testdata_file:
+        _ = testdata_file.readline()
+        last_timestamp = None
+        for line in testdata_file:
+            (timestamp, topic, qos, message) = line.rstrip().split(",")
+            topic = topic.strip()
+            message = message.strip()
+            payload = b64d(message)
+            if last_timestamp is not None and speed != 0:
+                delay = (float(timestamp) - float(last_timestamp)) / speed
+                if delay > 0:
+                    logging.info("Sleeping for %f seconds", delay)
+                    time.sleep(delay)
+            logging.info("Topic %s, Payload %s", topic, message)
+            asyncio.get_event_loop().run_until_complete(
+                send_realtime(client, [(topic, payload)])
+            )
+            last_timestamp = timestamp
 
 
 async def main():
@@ -267,11 +263,9 @@ async def main():
         if args.format == "yaml":
             with open(args.filename) as testdata_file:
                 data = yaml.safe_load(testdata_file)
-            process = await process_yaml(client=client, data=data, speed=args.speed)
+            await process_yaml(client=client, data=data, speed=args.speed)
         elif args.format == "csv":
-            process = await process_csv(
-                client=client, filename=args.filename, speed=args.speed
-            )
+            await process_csv(client=client, filename=args.filename, speed=args.speed)
         else:
             raise Exception("Unknown format")
 
