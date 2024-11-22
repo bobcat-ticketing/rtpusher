@@ -8,7 +8,6 @@ import datetime
 import json
 import logging
 import time
-from typing import List
 
 import aiomqtt
 import pendulum
@@ -92,7 +91,7 @@ def get_channel_contents(config: dict, name: str, contents: dict):
         raise Exception(f"Undefined channel: {name}")
 
 
-async def send_realtime(client: aiomqtt.Client, data: List):
+async def send_realtime(client: aiomqtt.Client, data: list):
     for topic, msg in data:
         ret = await client.publish(topic, msg)
         logging.debug("Published to MQTT topic %s -> %s", topic, ret)
