@@ -1,28 +1,36 @@
-[tool.poetry]
+[project]
 name = "rtpusher"
-version = "1.6.0.dev1"
 description = "Realtime Pusher"
-authors = ["Jakob Schlyter <jakob@kirei.se>"]
+license = "BSD-2-Clause"
+dynamic = ["version"]
+requires-python = "<4.0,>=3.11"
+authors = [
+    {name = "Bobcat Ticketing Solutions AB"},
+]
+dependencies = [
+    "aiomqtt>=2.4.0",
+    "cryptojwt>=1.10.0",
+    "pendulum>=3.1.0",
+    "pynmea2>=1.19.0",
+    "pyyaml>=6.0.2",
+]
 
-[tool.poetry.scripts]
+[project.scripts]
 rtpusher = "rtpusher:cli"
 
-[tool.poetry.dependencies]
-python = "^3.9"
-aiomqtt = "^1.2.1"
-pynmea2 = "^1.19.0"
-PyYAML = "^6.0.1"
-cryptojwt = "^1.9.2"
-pendulum = "^3.0.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8"
-pytest-ruff = "^0.4.1"
-ruff = "^0.8.0"
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-ruff>=0.5",
+    "ruff>=0.13.1",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
 
 [tool.ruff]
 line-length = 88
