@@ -178,7 +178,7 @@ async def process_yaml(data: dict, client: aiomqtt.Client, speed: float = 1.0):
                                     message.payload,
                                 )
                                 errors += 1
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logging.error(
                     "Didn't receive expected result from channel(s): %s",
                     ", ".join(expected),
